@@ -14,21 +14,20 @@ ORDER BY p.name ASC;
 -- 2. Запрос для добавления/обновления данных (исправленный)
 BEGIN;
 INSERT INTO partners (name, inn, email, phone, rating)
-	VALUES (
-	    'ООО "Бутафория"', 
-	    '775464671', 
-	    'butaforia@gmail.com', 
-	    '+7 (911) 911-99-11', 
-	    2.0
-	);
+VALUES (
+    'ООО "Бутафория"', 
+    '7754646710', 
+    'butaforia@gmail.com', 
+    '+7 (911) 911-99-11', 
+    2.0
+);
 INSERT INTO sales (partner_id, product_id, quantity, sale_date)
 VALUES (
     (SELECT id FROM partners WHERE inn = '7754646710'),
-    (SELECT id FROM products WHERE name = 'Стиральный порошок "Альфа"' LIMIT 1),
+    (SELECT id FROM products WHERE name = 'Стиральный порошок "Альфа"'),
     25,
     CURRENT_DATE
 );
-
 COMMIT;
 -- 3. Запрос для истории реализации  (исправленный)
 SELECT
