@@ -11,9 +11,9 @@ FROM partners p
 LEFT JOIN sales s ON p.id = s.partner_id
 GROUP BY p.id, p.name, p.inn, p.email, p.phone, p.rating
 ORDER BY p.name ASC;
--- 2. Запрос для добавления/обновления данных
-begin;
-insert into partners (name, inn, email, phone, rating)
+-- 2. Запрос для добавления/обновления данных (исправленный)
+BEGIN;
+INSERT INTO partners (name, inn, email, phone, rating)
 	VALUES (
 	    'ООО "Бутафория"', 
 	    '775464671', 
@@ -21,23 +21,25 @@ insert into partners (name, inn, email, phone, rating)
 	    '+7 (911) 911-99-11', 
 	    2.0
 	);
-insert into sales (partner_id, product_id, quantity, sale_date)
-	values (
-	4,
-	1,25,
-	current_date
-	);
-commit;
--- 3. Запрос для истории реализации
-select
-	s.id as sale_id,
-	pr.name as product_name,
-	s.sale_date,
-	s.quantity,
-	pr.price as unit_price,
-	(s.quantity * pr.price) as total_amount
-from sales s
-join products pr on s.product_id = pr.id
-where s.partner_id = 1
-  and s.sale_date between '2026-03-01' and '2026-03-31'
-order by s.sale_date desc, s.id desc;
+INSERT INTO sales (partner_id, product_id, quantity, sale_date)
+VALUES (
+    (SELECT id FROM partners WHERE inn = '7754646710'),
+    (SELECT id FROM products WHERE name = 'Стиральный порошок "Альфа"' LIMIT 1),
+    25,
+    CURRENT_DATE
+);
+
+COMMIT;
+-- 3. Запрос для истории реализации  (исправленный)
+SELECT
+    s.id AS sale_id,
+    pr.name AS product_name,
+    s.sale_date,
+    s.quantity,
+    pr.price AS unit_price,
+    (s.quantity * pr.price) AS total_amount
+FROM sales s
+JOIN products pr ON s.product_id = pr.id
+WHERE s.partner_id = (SELECT id FROM partners WHERE inn = '7701234567')
+  AND s.sale_date BETWEEN '2026-03-01' AND '2026-03-31'
+ORDER BY s.sale_date DESC, s.id DESC;
