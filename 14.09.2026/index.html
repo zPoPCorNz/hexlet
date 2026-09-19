@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM: Список партнеров и скидок</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <img src="logo.png" alt="Логотип компании" class="logo">
+    <h1>Список партнеров</h1>
+  </header>
+
+  <main class="container">
+    <div class="partners-list" id="partnersContainer">
+    </div>
+  </main>
+
+  <script>
+    async function loadPartners() {
+      try {
+        const response = await fetch('/api/partners');
+        const partners = await response.json();
+        const container = document.getElementById('partnersContainer');
+
+        container.innerHTML = partners.map(partner => `
+          <article class="partner-card">
+            <div class="partner-info">
+              <h2 class="partner-title">${partner.type} | ${partner.name}</h2>
+              <p class="partner-detail">Директор: ${partner.director}</p>
+              <p class="partner-detail">${partner.phone}</p>
+              <p class="partner-detail">Рейтинг: ${partner.rating}</p>
+            </div>
+            <div class="partner-discount">${partner.discountPercent}%</div>
+          </article>
+        `).join('');
+      } catch (err) {
+        console.error('Ошибка загрузки данных партнеров:', err);
+      }
+    }
+
+    loadPartners();
+  </script>
+</body>
+</html>
