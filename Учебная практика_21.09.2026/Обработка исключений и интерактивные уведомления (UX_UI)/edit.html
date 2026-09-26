@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="windowTitle">CRM: Карточка партнера [Создание]</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <img src="logo.png" alt="Логотип компании" class="logo">
+      <h1 id="pageHeading">Добавление партнера</h1>
+    </div>
+    <button type="button" class="btn btn-secondary" id="navBackBtn">← Назад</button>
+  </header>
+
+  <main class="container">
+    <section class="form-container">
+      <form id="partnerForm" class="partner-form" novalidate>
+        <input type="hidden" id="partnerId" name="id">
+
+        <div class="form-group">
+          <label for="partnerName">Наименование компании <span class="required">*</span></label>
+          <input type="text" id="partnerName" name="name" placeholder="Например: ООО «СтройБаза»">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="partnerType">Тип партнера <span class="required">*</span></label>
+            <select id="partnerType" name="type">
+              <option value="" disabled selected>Выберите тип...</option>
+              <option value="ЗАО">ЗАО</option>
+              <option value="ООО">ООО</option>
+              <option value="ПАО">ПАО</option>
+              <option value="ИП">ИП</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="partnerRating">Рейтинг компании <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="partnerRating" 
+              name="rating" 
+              placeholder="0" 
+              title="Рейтинг должен быть целым неотрицательным числом от 0"
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="partnerAddress">Юридический адрес</label>
+          <input type="text" id="partnerAddress" name="address" placeholder="г. Москва, ул. Ленина, д. 10">
+        </div>
+
+        <div class="form-group">
+          <label for="partnerDirector">ФИО директора</label>
+          <input type="text" id="partnerDirector" name="director" placeholder="Иванов Иван Иванович">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="partnerPhone">Контактный телефон</label>
+            <input type="tel" id="partnerPhone" name="phone" placeholder="+7 (___) ___-__-__">
+          </div>
+
+          <div class="form-group">
+            <label for="partnerEmail">Email компании <span class="required">*</span></label>
+            <input type="text" id="partnerEmail" name="email" placeholder="partner@company.ru">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="saveBtn">Сохранить</button>
+          <button type="button" class="btn btn-secondary" id="cancelBtn">Отмена</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+
+  <div id="messageBoxOverlay" class="modal-overlay modal-hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div id="modalIcon" class="modal-icon"></div>
+        <h3 id="modalTitle" class="modal-title"></h3>
+      </div>
+      <div id="modalBody" class="modal-body"></div>
+      <div id="modalActions" class="modal-actions"></div>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const partnerId = urlParams.get('id');
+    let isFormChanged = false;
+
+    function showMessageBox({ type, title, message, onConfirm = null }) {
+      const overlay = document.getElementById('messageBoxOverlay');
+      const modalIcon = document.getElementById('modalIcon');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalBody = document.getElementById('modalBody');
+      const modalActions = document.getElementById('modalActions');
+
+      modalTitle.textContent = title;
+      modalBody.textContent = message;
+      modalIcon.className = 'modal-icon';
+
+      if (type === 'error') {
+        modalIcon.classList.add('modal-icon-error');
+        modalIcon.innerHTML = '&#10006;'; 
+        modalActions.innerHTML = '<button class="btn btn-primary" id="modalOkBtn">Понятно</button>';
+        document.getElementById('modalOkBtn').onclick = () => overlay.classList.add('modal-hidden');
+      } else if (type === 'warning') {
+        modalIcon.classList.add('modal-icon-warning');
+        modalIcon.innerHTML = '&#9888;';
+        modalActions.innerHTML = `
+          <button class="btn btn-secondary" id="modalCancelBtn">Остаться</button>
+          <button class="btn btn-primary" id="modalConfirmBtn">Да, выйти</button>
+        `;
+        document.getElementById('modalCancelBtn').onclick = () => overlay.classList.add('modal-hidden');
+        document.getElementById('modalConfirmBtn').onclick = () => {
+          overlay.classList.add('modal-hidden');
+          if (onConfirm) onConfirm();
+        };
+      } else if (type === 'info') {
+        modalIcon.classList.add('modal-icon-info');
+        modalIcon.innerHTML = '&#8505;';
+        modalActions.innerHTML = '<button class="btn btn-primary" id="modalOkBtn">ОК</button>';
+        document.getElementById('modalOkBtn').onclick = () => {
+          overlay.classList.add('modal-hidden');
+          if (onConfirm) onConfirm();
+        };
+      }
+
+      overlay.classList.remove('modal-hidden');
+    }
+
+    document.getElementById('partnerForm').addEventListener('input', () => {
+      isFormChanged = true;
+    });
+
+    function handleExit() {
+      if (isFormChanged) {
+        showMessageBox({
+          type: 'warning',
+          title: 'Предупреждение: несохраненные данные',
+          message: 'Вы изменили поля карточки. Все внесенные данные будут потеряны без возможности восстановления. Вы уверены, что хотите выйти?',
+          onConfirm: () => { window.location.href = 'index.html'; }
+        });
+      } else {
+        window.location.href = 'index.html';
+      }
+    }
+
+    document.getElementById('navBackBtn').addEventListener('click', handleExit);
+    document.getElementById('cancelBtn').addEventListener('click', handleExit);
+
+    async function initForm() {
+      if (partnerId) {
+        document.getElementById('windowTitle').textContent = 'CRM: Карточка партнера [Редактирование]';
+        document.getElementById('pageHeading').textContent = 'Редактирование партнера';
+        document.getElementById('partnerId').value = partnerId;
+
+        try {
+          const response = await fetch(`/api/partners/${partnerId}`);
+          if (!response.ok) throw new Error('Партнер не найден в базе данных.');
+          const data = await response.json();
+
+          document.getElementById('partnerName').value = data.name || '';
+          document.getElementById('partnerType').value = data.type || '';
+          document.getElementById('partnerRating').value = data.rating ?? 0;
+          document.getElementById('partnerAddress').value = data.address || '';
+          document.getElementById('partnerDirector').value = data.director || '';
+          document.getElementById('partnerPhone').value = data.phone || '';
+          document.getElementById('partnerEmail').value = data.email || '';
+          isFormChanged = false;
+        } catch (err) {
+          showMessageBox({
+            type: 'error',
+            title: 'Ошибка загрузки данных',
+            message: `СУБД недоступна или запись отсутствует: ${err.message}. Попробуйте обновить страницу позже.`,
+            onConfirm: () => { window.location.href = 'index.html'; }
+          });
+        }
+      } else {
+        document.getElementById('windowTitle').textContent = 'CRM: Карточка партнера [Создание]';
+        document.getElementById('pageHeading').textContent = 'Добавление партнера';
+      }
+    }
+
+    document.getElementById('partnerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      try {
+        const name = document.getElementById('partnerName').value.trim();
+        const type = document.getElementById('partnerType').value;
+        const ratingRaw = document.getElementById('partnerRating').value.trim();
+        const email = document.getElementById('partnerEmail').value.trim();
+
+        if (!name) {
+          throw new Error('Поле «Наименование компании» обязательно для заполнения. Пожалуйста, введите название организации.');
+        }
+        if (!type) {
+          throw new Error('Не выбран «Тип партнера». Пожалуйста, выберите организационно-правовую форму из выпадающего списка.');
+        }
+        if (!email) {
+          throw new Error('Поле «Email компании» обязательно для заполнения. Пожалуйста, укажите адрес электронной почты.');
+        }
+
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          throw new Error('Указан некорректный формат Email. Пожалуйста, введите адрес по шаблону: name@domain.ru.');
+        }
+
+        if (ratingRaw === '' || !/^\d+$/.test(ratingRaw)) {
+          throw new Error('Рейтинг должен быть целым неотрицательным числом от 0. Пожалуйста, удалите знаки препинания, буквы или отрицательный знак и повторите попытку.');
+        }
+        const rating = parseInt(ratingRaw, 10);
+        if (rating < 0) {
+          throw new Error('Рейтинг не может быть отрицательным числом.');
+        }
+
+        const payload = {
+          name,
+          type,
+          rating,
+          address: document.getElementById('partnerAddress').value.trim(),
+          director: document.getElementById('partnerDirector').value.trim(),
+          phone: document.getElementById('partnerPhone').value.trim(),
+          email,
+        };
+
+        const isEdit = Boolean(partnerId);
+        const url = isEdit ? `/api/partners/${partnerId}` : '/api/partners';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json; charset=utf-8' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || 'Ошибка при обращении к серверу или СУБД.');
+        }
+
+        isFormChanged = false;
+        showMessageBox({
+          type: 'info',
+          title: 'Успешное сохранение',
+          message: isEdit 
+            ? 'Данные партнера успешно обновлены в базе данных.' 
+            : 'Новый партнер успешно добавлен в реестр компании.',
+          onConfirm: () => { window.location.href = 'index.html'; }
+        });
+
+      } catch (err) {
+        showMessageBox({
+          type: 'error',
+          title: 'Ошибка валидации данных',
+          message: err.message
+        });
+      }
+    });
+
+    initForm();
+  </script>
+</body>
+</html>

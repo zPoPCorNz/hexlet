@@ -1,0 +1,9 @@
+{
+  "name": "crm-navigation",
+  "version": "1.0.0",
+  "description": "Multi-window navigation architecture",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}

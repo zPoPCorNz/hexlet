@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM: Реестр партнеров</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <img src="logo.png" alt="Логотип компании" class="logo">
+      <h1>Реестр партнеров</h1>
+    </div>
+    <a href="edit.html" class="btn btn-primary" id="addPartnerBtn">+ Добавить партнера</a>
+  </header>
+
+  <main class="container">
+    <div class="partners-list" id="partnersContainer">
+      <p style="color: #666;">Загрузка данных из базы...</p>
+    </div>
+  </main>
+
+  <script>
+    async function loadPartners() {
+      try {
+        const response = await fetch('/api/partners');
+        const partners = await response.json();
+        const container = document.getElementById('partnersContainer');
+
+        if (!partners.length) {
+          container.innerHTML = '<p>Список партнеров пуст.</p>';
+          return;
+        }
+        container.innerHTML = partners.map(partner => `
+          <a href="edit.html?id=${partner.id}" class="partner-card" title="Нажмите для редактирования">
+            <div class="partner-info">
+              <h2 class="partner-title">${partner.type} | ${partner.name}</h2>
+              <p class="partner-detail">Директор: ${partner.director || 'Не указан'}</p>
+              <p class="partner-detail">${partner.phone || 'Нет телефона'}</p>
+              <p class="partner-detail">Рейтинг: ${partner.rating}</p>
+            </div>
+            <div class="partner-discount">${partner.discountPercent}%</div>
+          </a>
+        `).join('');
+      } catch (err) {
+        console.error('Ошибка загрузки данных:', err);
+        document.getElementById('partnersContainer').innerHTML = 
+          '<p style="color: red;">Не удалось подключиться к серверу базы данных.</p>';
+      }
+    }
+
+    loadPartners();
+  </script>
+</body>
+</html>

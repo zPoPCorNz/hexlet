@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM: Реестр партнеров</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <img src="logo.png" alt="Логотип компании" class="logo">
+      <h1>Реестр партнеров</h1>
+    </div>
+    <a href="edit.html" class="btn btn-primary" id="addPartnerBtn">+ Добавить партнера</a>
+  </header>
+
+  <main class="container">
+    <div class="partners-list" id="partnersContainer">
+      <a href="edit.html?id=1" class="partner-card">
+        <div class="partner-info">
+          <h2 class="partner-title">ЗАО | База Строитель</h2>
+          <p class="partner-detail">Директор: Иванов Иван Иванович</p>
+          <p class="partner-detail">+7 223 322 22 32</p>
+          <p class="partner-detail">Рейтинг: 10</p>
+        </div>
+        <div class="partner-discount">10%</div>
+      </a>
+
+      <a href="edit.html?id=2" class="partner-card">
+        <div class="partner-info">
+          <h2 class="partner-title">ООО | Паркет 29</h2>
+          <p class="partner-detail">Директор: Петров Петр Петрович</p>
+          <p class="partner-detail">+7 912 345 67 89</p>
+          <p class="partner-detail">Рейтинг: 8</p>
+        </div>
+        <div class="partner-discount">5%</div>
+      </a>
+    </div>
+  </main>
+</body>
+</html>

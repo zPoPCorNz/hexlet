@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="windowTitle">CRM: Карточка партнера [Создание]</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <img src="logo.png" alt="Логотип компании" class="logo">
+      <h1 id="pageHeading">Добавление партнера</h1>
+    </div>
+    <a href="index.html" class="btn btn-secondary">← Назад</a>
+  </header>
+
+  <main class="container">
+    <section class="form-container">
+      <form id="partnerForm" class="partner-form">
+        <input type="hidden" id="partnerId" name="id">
+
+        <div class="form-group">
+          <label for="partnerName">Наименование компании <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="partnerName" 
+            name="name" 
+            placeholder="Например: ООО «СтройБаза»" 
+            required
+          >
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="partnerType">Тип партнера <span class="required">*</span></label>
+            <select id="partnerType" name="type" required>
+              <option value="" disabled selected>Выберите тип...</option>
+              <option value="ЗАО">ЗАО</option>
+              <option value="ООО">ООО</option>
+              <option value="ПАО">ПАО</option>
+              <option value="ИП">ИП</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="partnerRating">Рейтинг компании <span class="required">*</span></label>
+            <input 
+              type="number" 
+              id="partnerRating" 
+              name="rating" 
+              min="0" 
+              step="1" 
+              placeholder="0" 
+              title="Рейтинг должен быть целым неотрицательным числом (от 0 и выше)"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="partnerAddress">Юридический адрес</label>
+          <input 
+            type="text" 
+            id="partnerAddress" 
+            name="address" 
+            placeholder="г. Москва, ул. Ленина, д. 10, оф. 4"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="partnerDirector">ФИО директора</label>
+          <input 
+            type="text" 
+            id="partnerDirector" 
+            name="director" 
+            placeholder="Иванов Иван Иванович"
+          >
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="partnerPhone">Контактный телефон</label>
+            <input 
+              type="tel" 
+              id="partnerPhone" 
+              name="phone" 
+              placeholder="+7 (___) ___-__-__" 
+              title="Введите телефон в формате: +7 (999) 000-00-00"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="partnerEmail">Email компании <span class="required">*</span></label>
+            <input 
+              type="email" 
+              id="partnerEmail" 
+              name="email" 
+              placeholder="partner@company.ru" 
+              title="Введите действующий адрес электронной почты: partner@company.ru"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="saveBtn">Сохранить</button>
+          <a href="index.html" class="btn btn-secondary" id="cancelBtn">Отмена</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const partnerId = urlParams.get('id');
+
+    if (partnerId) {
+      document.getElementById('windowTitle').textContent = 'CRM: Карточка партнера [Редактирование]';
+      document.getElementById('pageHeading').textContent = 'Редактирование партнера';
+      document.getElementById('partnerId').value = partnerId;
+      document.getElementById('partnerName').value = 'База Строитель';
+      document.getElementById('partnerType').value = 'ЗАО';
+      document.getElementById('partnerRating').value = '10';
+      document.getElementById('partnerAddress').value = 'г. Москва, проспект Мира, 42';
+      document.getElementById('partnerDirector').value = 'Иванов Иван Иванович';
+      document.getElementById('partnerPhone').value = '+7 223 322 22 32';
+      document.getElementById('partnerEmail').value = 'info@baza-stroitel.ru';
+    } else {
+      document.getElementById('windowTitle').textContent = 'CRM: Карточка партнера [Создание]';
+      document.getElementById('pageHeading').textContent = 'Добавление партнера';
+    }
+
+    document.getElementById('partnerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      alert('Форма валидна и готова к отправке в БД (CRUD-операции подключаются в следующем задании).');
+    });
+  </script>
+</body>
+</html>
