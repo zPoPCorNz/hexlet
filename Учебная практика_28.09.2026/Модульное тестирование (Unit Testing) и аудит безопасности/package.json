@@ -1,0 +1,12 @@
+{
+  "name": "crm-security-and-unit-testing",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test test_material_calculator.js",
+    "test:security": "node test_security.js"
+  },
+  "dependencies": {
+    "pg": "^8.23.1"
+  }
+}

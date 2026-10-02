@@ -1,0 +1,4 @@
+[2026-10-02 04:49:45] [ERROR] [SecurityAuditTest] Имитация перехвата критического исключения для аудита безопасности
+Стек: Error: Имитация перехвата критического исключения для аудита безопасности
+    at testSqlInjectionVulnerability (/mnt/c/Users/Admin/Documents/hexlet/Учебная практика_28.09.2026/Модульное тестирование (Unit Testing) и аудит безопасности/test_security.js:31:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
