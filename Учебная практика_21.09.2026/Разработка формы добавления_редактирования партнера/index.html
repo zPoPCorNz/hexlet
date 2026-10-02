@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CRM: Реестр партнеров</title>
+  <script>
+    document.title = 'CRM: Реестр партнеров';
+  </script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -36,7 +38,39 @@
         </div>
         <div class="partner-discount">5%</div>
       </a>
+
+      <a href="edit.html?id=3" class="partner-card">
+        <div class="partner-info">
+          <h2 class="partner-title">ПАО | СтройКомплект</h2>
+          <p class="partner-detail">Директор: Сидоров Алексей Николаевич</p>
+          <p class="partner-detail">+7 495 111 22 33</p>
+          <p class="partner-detail">Рейтинг: 10</p>
+        </div>
+        <div class="partner-discount">15%</div>
+      </a>
     </div>
   </main>
+
+  <script>
+
+    function recordScrollState() {
+      sessionStorage.setItem('crm_registry_scroll', window.scrollY);
+    }
+
+    document.querySelectorAll('.partner-card').forEach(card => {
+      card.addEventListener('click', recordScrollState);
+    });
+    document.getElementById('addPartnerBtn')?.addEventListener('click', recordScrollState);
+
+    window.addEventListener('pageshow', () => {
+      const savedPosition = sessionStorage.getItem('crm_registry_scroll');
+      if (savedPosition !== null) {
+        window.scrollTo({
+          top: parseInt(savedPosition, 10),
+          behavior: 'instant'
+        });
+      }
+    });
+  </script>
 </body>
 </html>

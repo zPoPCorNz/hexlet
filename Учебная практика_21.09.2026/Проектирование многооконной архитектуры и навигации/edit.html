@@ -3,71 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="windowTitle">CRM: Карточка партнера [Создание]</title>
+  <title id="windowTitle"></title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="header">
     <div class="header-left">
       <img src="logo.png" alt="Логотип компании" class="logo">
-      <h1 id="pageHeading">Добавление партнера</h1>
+      <h1 id="pageHeading">Карточка партнера</h1>
     </div>
-    <a href="index.html" class="btn btn-secondary">← Назад</a>
+    <button type="button" class="btn btn-secondary" id="backBtn">← Назад</button>
   </header>
 
   <main class="container">
     <section class="form-container">
-      <form id="partnerForm" class="partner-form">
-        <input type="hidden" id="partnerId" name="id">
+      <h2>Данные партнера</h2>
+      <p class="subtitle">Карточка формы редактирования/добавления</p>
 
+      <form id="partnerForm" onsubmit="event.preventDefault();">
         <div class="form-group">
-          <label for="partnerName">Наименование компании <span class="required">*</span></label>
-          <input type="text" id="partnerName" name="name" placeholder="Например: ООО «СтройБаза»" required>
+          <label for="partnerName">Наименование партнера</label>
+          <input type="text" id="partnerName" placeholder="Введите наименование">
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="partnerType">Тип партнера <span class="required">*</span></label>
-            <select id="partnerType" name="type" required>
-              <option value="" disabled selected>Выберите тип...</option>
-              <option value="ЗАО">ЗАО</option>
-              <option value="ООО">ООО</option>
-              <option value="ПАО">ПАО</option>
-              <option value="ИП">ИП</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="partnerRating">Рейтинг компании <span class="required">*</span></label>
-            <input type="number" id="partnerRating" name="rating" min="0" step="1" placeholder="0" required>
-          </div>
+        <div class="form-group" style="margin-top: 14px;">
+          <label for="partnerRating">Рейтинг</label>
+          <input type="number" id="partnerRating" placeholder="0">
         </div>
 
-        <div class="form-group">
-          <label for="partnerAddress">Юридический адрес</label>
-          <input type="text" id="partnerAddress" name="address" placeholder="г. Москва, ул. Ленина, д. 10">
-        </div>
-
-        <div class="form-group">
-          <label for="partnerDirector">ФИО директора</label>
-          <input type="text" id="partnerDirector" name="director" placeholder="Иванов Иван Иванович">
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="partnerPhone">Контактный телефон</label>
-            <input type="tel" id="partnerPhone" name="phone" placeholder="+7 (999) 000-00-00">
-          </div>
-
-          <div class="form-group">
-            <label for="partnerEmail">Email компании <span class="required">*</span></label>
-            <input type="email" id="partnerEmail" name="email" placeholder="partner@company.ru" required>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary" id="saveBtn">Сохранить</button>
-          <a href="index.html" class="btn btn-secondary" id="cancelBtn">Отмена</a>
+        <div class="form-actions" style="margin-top: 20px;">
+          <button type="button" class="btn btn-secondary" id="cancelBtn">Отмена</button>
         </div>
       </form>
     </section>
@@ -77,70 +42,25 @@
     const urlParams = new URLSearchParams(window.location.search);
     const partnerId = urlParams.get('id');
 
-    async function initForm() {
-      if (partnerId) {
-        document.getElementById('windowTitle').textContent = 'CRM: Карточка партнера [Редактирование]';
-        document.getElementById('pageHeading').textContent = 'Редактирование партнера';
-        document.getElementById('partnerId').value = partnerId;
-
-        try {
-          const response = await fetch(`/api/partners/${partnerId}`);
-          if (!response.ok) throw new Error('Партнер не найден в базе данных');
-          const data = await response.json();
-
-          document.getElementById('partnerName').value = data.name || '';
-          document.getElementById('partnerType').value = data.type || '';
-          document.getElementById('partnerRating').value = data.rating ?? 0;
-          document.getElementById('partnerAddress').value = data.address || '';
-          document.getElementById('partnerDirector').value = data.director || '';
-          document.getElementById('partnerPhone').value = data.phone || '';
-          document.getElementById('partnerEmail').value = data.email || '';
-        } catch (err) {
-          alert('Ошибка при загрузке данных: ' + err.message);
-          window.location.href = 'index.html';
-        }
+    if (partnerId) {
+      document.title = 'CRM: Карточка партнера [Редактирование]';
+      document.getElementById('pageHeading').textContent = 'Редактирование партнера #' + partnerId;
+      document.getElementById('partnerName').value = 'База Строитель';
+      document.getElementById('partnerRating').value = '10';
+    } else {
+      document.title = 'CRM: Карточка партнера [Создание]';
+      document.getElementById('pageHeading').textContent = 'Добавление нового партнера';
+    }
+    function handleBackNavigation() {
+      if (window.history.length > 1) {
+        window.history.back();
       } else {
-        document.getElementById('windowTitle').textContent = 'CRM: Карточка партнера [Создание]';
-        document.getElementById('pageHeading').textContent = 'Добавление партнера';
+        window.location.href = 'index.html';
       }
     }
 
-    document.getElementById('partnerForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const payload = {
-        name: document.getElementById('partnerName').value.trim(),
-        type: document.getElementById('partnerType').value,
-        rating: parseInt(document.getElementById('partnerRating').value, 10) || 0,
-        address: document.getElementById('partnerAddress').value.trim(),
-        director: document.getElementById('partnerDirector').value.trim(),
-        phone: document.getElementById('partnerPhone').value.trim(),
-        email: document.getElementById('partnerEmail').value.trim(),
-      };
-
-      const isEdit = Boolean(partnerId);
-      const url = isEdit ? `/api/partners/${partnerId}` : '/api/partners';
-      const method = isEdit ? 'PUT' : 'POST';
-
-      try {
-        const response = await fetch(url, {
-          method,
-          headers: { 'Content-Type': 'application/json; charset=utf-8' },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Ошибка сохранения');
-        }
-
-        window.location.href = 'index.html';
-      } catch (err) {
-        alert('Не удалось сохранить данные: ' + err.message);
-      }
-    });
-
-    initForm();
+    document.getElementById('backBtn').addEventListener('click', handleBackNavigation);
+    document.getElementById('cancelBtn').addEventListener('click', handleBackNavigation);
   </script>
 </body>
 </html>

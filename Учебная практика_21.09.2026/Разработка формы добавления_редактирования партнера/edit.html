@@ -3,16 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="windowTitle">CRM: Карточка партнера [Создание]</title>
+  <script>
+    (function initWindowTitle() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      document.title = id 
+        ? `CRM: Карточка партнера [Редактирование #${id}]` 
+        : 'CRM: Карточка партнера [Создание]';
+    })();
+  </script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="header">
     <div class="header-left">
       <img src="logo.png" alt="Логотип компании" class="logo">
-      <h1 id="pageHeading">Добавление партнера</h1>
+      <h1 id="pageHeading">Карточка партнера</h1>
     </div>
-    <a href="index.html" class="btn btn-secondary">← Назад</a>
+    <button type="button" class="btn btn-secondary" id="backBtn">← Назад</button>
   </header>
 
   <main class="container">
@@ -52,7 +60,7 @@
               min="0" 
               step="1" 
               placeholder="0" 
-              title="Рейтинг должен быть целым неотрицательным числом (от 0 и выше)"
+              title="Рейтинг должен быть целым неотрицательным числом (от 0 и выше)" 
               required
             >
           </div>
@@ -97,7 +105,7 @@
               id="partnerEmail" 
               name="email" 
               placeholder="partner@company.ru" 
-              title="Введите действующий адрес электронной почты: partner@company.ru"
+              title="Введите действующий адрес электронной почты: partner@company.ru" 
               required
             >
           </div>
@@ -105,7 +113,7 @@
 
         <div class="form-actions">
           <button type="submit" class="btn btn-primary" id="saveBtn">Сохранить</button>
-          <a href="index.html" class="btn btn-secondary" id="cancelBtn">Отмена</a>
+          <button type="button" class="btn btn-secondary" id="cancelBtn">Отмена</button>
         </div>
       </form>
     </section>
@@ -114,27 +122,69 @@
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const partnerId = urlParams.get('id');
+    const DRAFT_KEY = partnerId ? `draft_partner_${partnerId}` : 'draft_partner_new';
 
-    if (partnerId) {
-      document.getElementById('windowTitle').textContent = 'CRM: Карточка партнера [Редактирование]';
-      document.getElementById('pageHeading').textContent = 'Редактирование партнера';
-      document.getElementById('partnerId').value = partnerId;
-      document.getElementById('partnerName').value = 'База Строитель';
-      document.getElementById('partnerType').value = 'ЗАО';
-      document.getElementById('partnerRating').value = '10';
-      document.getElementById('partnerAddress').value = 'г. Москва, проспект Мира, 42';
-      document.getElementById('partnerDirector').value = 'Иванов Иван Иванович';
-      document.getElementById('partnerPhone').value = '+7 223 322 22 32';
-      document.getElementById('partnerEmail').value = 'info@baza-stroitel.ru';
-    } else {
-      document.getElementById('windowTitle').textContent = 'CRM: Карточка партнера [Создание]';
-      document.getElementById('pageHeading').textContent = 'Добавление партнера';
+    function initFormState() {
+      if (partnerId) {
+        document.getElementById('pageHeading').textContent = 'Редактирование партнера';
+        document.getElementById('partnerId').value = partnerId;
+
+        document.getElementById('partnerName').value = 'База Строитель';
+        document.getElementById('partnerType').value = 'ЗАО';
+        document.getElementById('partnerRating').value = '10';
+        document.getElementById('partnerAddress').value = 'г. Москва, проспект Мира, 42';
+        document.getElementById('partnerDirector').value = 'Иванов Иван Иванович';
+        document.getElementById('partnerPhone').value = '+7 223 322 22 32';
+        document.getElementById('partnerEmail').value = 'info@baza-stroitel.ru';
+      } else {
+        document.getElementById('pageHeading').textContent = 'Добавление партнера';
+      }
+
+      const savedDraft = sessionStorage.getItem(DRAFT_KEY);
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          Object.keys(draft).forEach(key => {
+            const field = document.getElementById(key);
+            if (field) field.value = draft[key];
+          });
+        } catch (e) {
+          console.warn('Не удалось восстановить черновик', e);
+        }
+      }
     }
+    document.getElementById('partnerForm').addEventListener('input', () => {
+      const draftData = {
+        partnerName: document.getElementById('partnerName').value,
+        partnerType: document.getElementById('partnerType').value,
+        partnerRating: document.getElementById('partnerRating').value,
+        partnerAddress: document.getElementById('partnerAddress').value,
+        partnerDirector: document.getElementById('partnerDirector').value,
+        partnerPhone: document.getElementById('partnerPhone').value,
+        partnerEmail: document.getElementById('partnerEmail').value
+      };
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
+    });
+
+    function navigateBack() {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = 'index.html';
+      }
+    }
+
+    document.getElementById('backBtn').addEventListener('click', navigateBack);
+    document.getElementById('cancelBtn').addEventListener('click', navigateBack);
 
     document.getElementById('partnerForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      alert('Форма валидна и готова к отправке в БД (CRUD-операции подключаются в следующем задании).');
+      sessionStorage.removeItem(DRAFT_KEY);
+      alert('Форма валидна. Данные подготовлены к отправке в БД (CRUD подключается в следующем шаге).');
+      navigateBack();
     });
+
+    initFormState();
   </script>
 </body>
 </html>
