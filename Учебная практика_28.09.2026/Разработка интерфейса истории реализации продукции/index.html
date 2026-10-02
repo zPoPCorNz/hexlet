@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="logo.png">
+  <title id="windowTitle"></title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <img src="logo.png" alt="Логотип компании" class="logo" width="46" height="46" style="width: 46px; height: 46px; object-fit: contain;">
+      <h1>Реестр партнеров</h1>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn btn-outline" id="viewHistoryBtn" disabled>История продаж</button>
+      <a href="edit.html" class="btn btn-primary" id="addPartnerBtn">+ Добавить партнера</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <p class="section-hint">Выберите партнера в списке для просмотра истории реализации продукции:</p>
+    <div class="partners-list" id="partnersContainer">
+      <p style="color: #666;">Загрузка реестра партнеров...</p>
+    </div>
+  </main>
+
+  <script>
+    const APP_TITLE = 'CRM: Реестр партнеров';
+    document.title = APP_TITLE;
+
+    let selectedPartnerId = null;
+
+    async function loadPartners() {
+      try {
+        const response = await fetch('/api/partners');
+        const partners = await response.json();
+        const container = document.getElementById('partnersContainer');
+
+        if (!partners.length) {
+          container.innerHTML = '<p>Список партнеров пуст.</p>';
+          return;
+        }
+
+        document.title = `${APP_TITLE} (Записей: ${partners.length})`;
+
+        container.innerHTML = partners.map(partner => `
+          <div class="partner-card" data-id="${partner.id}" onclick="selectPartner(${partner.id}, this)">
+            <div class="partner-info">
+              <h2 class="partner-title">${partner.type} | ${partner.name}</h2>
+              <p class="partner-detail">Директор: ${partner.director || 'Не указан'}</p>
+              <p class="partner-detail">${partner.phone || 'Нет телефона'}</p>
+              <p class="partner-detail">Рейтинг: ${partner.rating}</p>
+            </div>
+            <div class="partner-right">
+              <div class="partner-discount">${partner.discountPercent}%</div>
+              <!-- Прямая кнопка быстрого перехода в карточке -->
+              <a href="history.html?partner_id=${partner.id}" class="card-link" onclick="event.stopPropagation(); saveScrollPosition();">История →</a>
+            </div>
+          </div>
+        `).join('');
+
+        const savedScroll = sessionStorage.getItem('crm_registry_scroll');
+        if (savedScroll) {
+          window.scrollTo(0, parseInt(savedScroll, 10));
+        }
+      } catch (err) {
+        console.error('Ошибка:', err);
+        document.getElementById('partnersContainer').innerHTML = 
+          '<p style="color: red;">Не удалось загрузить данные из базы данных.</p>';
+      }
+    }
+
+    function selectPartner(id, element) {
+      selectedPartnerId = id;
+      document.querySelectorAll('.partner-card').forEach(c => c.classList.remove('partner-card-selected'));
+      element.classList.add('partner-card-selected');
+
+      const historyBtn = document.getElementById('viewHistoryBtn');
+      historyBtn.disabled = false;
+      historyBtn.classList.remove('btn-outline');
+      historyBtn.classList.add('btn-secondary');
+    }
+
+    function saveScrollPosition() {
+      sessionStorage.setItem('crm_registry_scroll', window.scrollY);
+    }
+
+    document.getElementById('viewHistoryBtn').addEventListener('click', () => {
+      if (selectedPartnerId) {
+        saveScrollPosition();
+        window.location.href = `history.html?partner_id=${selectedPartnerId}`;
+      }
+    });
+
+    document.getElementById('addPartnerBtn').addEventListener('click', saveScrollPosition);
+
+    loadPartners();
+  </script>
+</body>
+</html>

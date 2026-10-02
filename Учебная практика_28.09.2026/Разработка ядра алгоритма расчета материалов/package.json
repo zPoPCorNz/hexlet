@@ -1,0 +1,11 @@
+{
+  "name": "crm-material-calculator",
+  "version": "1.0.0",
+  "main": "materialCalculator.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "pg": "^8.13.0"
+  }
+}

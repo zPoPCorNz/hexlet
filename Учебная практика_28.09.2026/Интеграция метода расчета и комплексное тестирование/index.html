@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="logo.png">
+  <title id="windowTitle">CRM: Калькулятор расчета сырья и материалов</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <img src="logo.png" alt="Логотип компании" class="logo" width="46" height="46">
+      <div>
+        <h1>Калькулятор сырья и материалов</h1>
+        <p class="subtitle">Интеграция метода автоматизированного расчета сырья на производство</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="calculator-card">
+      <form id="materialForm" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="productTypeSelect">Тип продукции <span class="required">*</span></label>
+            <select id="productTypeSelect" required>
+              <option value="" disabled selected>Загрузка типов продукции...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="materialTypeSelect">Тип материала <span class="required">*</span></label>
+            <select id="materialTypeSelect" required>
+              <option value="" disabled selected>Загрузка типов материалов...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row form-row-three">
+          <div class="form-group">
+            <label for="quantityInput">Количество (шт.) <span class="required">*</span></label>
+            <input type="number" id="quantityInput" placeholder="Например: 100" min="1" step="1" required>
+          </div>
+
+          <div class="form-group">
+            <label for="param1Input">Параметр 1 (длина/размер) <span class="required">*</span></label>
+            <input type="number" id="param1Input" placeholder="Например: 1.5" step="0.01" min="0.01" required>
+          </div>
+
+          <div class="form-group">
+            <label for="param2Input">Параметр 2 (ширина/толщина) <span class="required">*</span></label>
+            <input type="number" id="param2Input" placeholder="Например: 2.0" step="0.01" min="0.01" required>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="calculateBtn">Рассчитать сырье</button>
+          <button type="button" class="btn btn-secondary" id="resetBtn">Сбросить</button>
+        </div>
+      </form>
+
+      <div id="resultBox" class="result-box result-hidden">
+        <div class="result-title">Итоговая потребность в сырье:</div>
+        <div class="result-value" id="resultValue">0 ед.</div>
+        <p class="result-description" id="resultDescription">Значение округлено в большую сторону с учетом технологического брака материала.</p>
+      </div>
+
+      <div id="errorBox" class="error-box error-hidden">
+        <div class="error-icon">&#10006;</div>
+        <div class="error-content">
+          <strong id="errorTitle">Ошибка расчета</strong>
+          <p id="errorMessageText"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+
+    document.title = 'CRM: Калькулятор расчета сырья и материалов';
+
+    const productSelect = document.getElementById('productTypeSelect');
+    const materialSelect = document.getElementById('materialTypeSelect');
+    const resultBox = document.getElementById('resultBox');
+    const resultValue = document.getElementById('resultValue');
+    const errorBox = document.getElementById('errorBox');
+    const errorMessageText = document.getElementById('errorMessageText');
+
+    async function loadSelectOptions() {
+      try {
+        const [prodResponse, matResponse] = await Promise.all([
+          fetch('/api/product-types'),
+          fetch('/api/material-types')
+        ]);
+
+        const productTypes = await prodResponse.json();
+        const materialTypes = await matResponse.json();
+
+        productSelect.innerHTML = '<option value="" disabled selected>Выберите тип продукции...</option>' +
+          productTypes.map(p => `<option value="${p.id}">${p.name} (Коэфф: ${p.coefficient})</option>`).join('');
+
+        materialSelect.innerHTML = '<option value="" disabled selected>Выберите тип материала...</option>' +
+          materialTypes.map(m => `<option value="${m.id}">${m.name} (Брак: ${m.defect_rate}%)</option>`).join('');
+      } catch (err) {
+        showError('Не удалось загрузить справочники типов продукции и сырья из базы данных.');
+      }
+    }
+
+    function hideNotifications() {
+      resultBox.classList.add('result-hidden');
+      errorBox.classList.add('error-hidden');
+    }
+
+    function showError(message) {
+      resultBox.classList.add('result-hidden');
+      errorMessageText.textContent = message;
+      errorBox.classList.remove('error-hidden');
+    }
+
+    function showSuccess(units) {
+      errorBox.classList.add('error-hidden');
+      resultValue.textContent = `${units.toLocaleString('ru-RU')} ед.`;
+      resultBox.classList.remove('result-hidden');
+    }
+
+    document.getElementById('materialForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      hideNotifications();
+
+      const productTypeId = productSelect.value;
+      const materialTypeId = materialSelect.value;
+      const quantityRaw = document.getElementById('quantityInput').value.trim();
+      const param1Raw = document.getElementById('param1Input').value.trim();
+      const param2Raw = document.getElementById('param2Input').value.trim();
+
+      if (!productTypeId || !materialTypeId) {
+        showError('Пожалуйста, выберите тип продукции и тип материала из списков.');
+        return;
+      }
+
+      const quantity = Number(quantityRaw);
+      const param1 = Number(param1Raw);
+      const param2 = Number(param2Raw);
+
+      if (!quantityRaw || isNaN(quantity) || quantity <= 0) {
+        showError('Количество продукции должно быть положительным целым числом больше нуля.');
+        return;
+      }
+
+      if (!param1Raw || isNaN(param1) || param1 <= 0 || !param2Raw || isNaN(param2) || param2 <= 0) {
+        showError('Параметры изделия должны быть вещественными положительными числами больше 0.');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/calculate-material', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json; charset=utf-8' },
+          body: JSON.stringify({
+            productTypeId,
+            materialTypeId,
+            quantity,
+            param1,
+            param2
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.result === -1 || !data.success) {
+          showError(data.errorMessage || 'Метод расчета вернул код ошибки (-1): переданы некорректные параметры изделия.');
+          return;
+        }
+
+        showSuccess(data.result);
+
+      } catch (networkError) {
+        showError('Сбой обращения к сервису расчета: ' + networkError.message);
+      }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      document.getElementById('materialForm').reset();
+      hideNotifications();
+    });
+
+    loadSelectOptions();
+  </script>
+</body>
+</html>

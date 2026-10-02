@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="logo.png">
+  <title id="windowTitle">CRM: История реализации продукции</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <img src="logo.png" alt="Логотип компании" class="logo" width="46" height="46" style="width: 46px; height: 46px; object-fit: contain;">
+      <div>
+        <h1 id="pageHeading">История реализации продукции</h1>
+        <p id="partnerSubtitle" class="partner-subtitle">Загрузка данных партнера...</p>
+      </div>
+    </div>
+    <button type="button" class="btn btn-secondary" id="backBtn">← Назад</button>
+  </header>
+
+  <main class="container">
+    <section class="history-card">
+      <div class="history-summary" id="historySummary">
+        <span>Всего позиций отгрузки: <strong id="totalRecords">0</strong></span>
+        <span>Общий объем: <strong id="totalQuantity">0 шт.</strong></span>
+      </div>
+
+      <table class="data-table" id="historyTable">
+        <thead>
+          <tr>
+            <th>Наименование продукции</th>
+            <th class="text-right">Количество (шт.)</th>
+            <th class="text-center">Дата продажи</th>
+          </tr>
+        </thead>
+        <tbody id="historyTbody">
+          <tr>
+            <td colspan="3" class="text-center">Загрузка истории продаж...</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const partnerId = urlParams.get('partner_id');
+
+    document.getElementById('backBtn').addEventListener('click', () => {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = 'index.html';
+      }
+    });
+
+    async function loadPartnerHistory() {
+      if (!partnerId) {
+        alert('Не указан идентификатор партнера (partner_id).');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      try {
+
+        const partnerRes = await fetch(`/api/partners/${partnerId}`);
+        if (!partnerRes.ok) throw new Error('Партнер не найден');
+        const partner = await partnerRes.json();
+        
+        const fullPartnerName = `${partner.type} ${partner.name}`;
+        
+        document.title = `CRM: История реализации продукции — ${fullPartnerName}`;
+        document.getElementById('partnerSubtitle').textContent = `Партнер: ${fullPartnerName} (Директор: ${partner.director || 'Не указан'})`;
+
+        const historyRes = await fetch(`/api/partners/${partnerId}/history`);
+        const history = await historyRes.json();
+
+        const tbody = document.getElementById('historyTbody');
+        const totalRecordsEl = document.getElementById('totalRecords');
+        const totalQuantityEl = document.getElementById('totalQuantity');
+
+        if (!history.length) {
+          tbody.innerHTML = '<tr><td colspan="3" class="text-center">История реализации продукции у данного партнера отсутствует.</td></tr>';
+          totalRecordsEl.textContent = '0';
+          totalQuantityEl.textContent = '0 шт.';
+          return;
+        }
+
+        let totalQty = 0;
+        tbody.innerHTML = history.map(item => {
+          totalQty += item.quantity;
+          return `
+            <tr>
+              <td class="product-name-cell">${item.product_name}</td>
+              <td class="text-right font-bold">${item.quantity.toLocaleString('ru-RU')} шт.</td>
+              <td class="text-center">${item.sale_date_formatted}</td>
+            </tr>
+          `;
+        }).join('');
+
+        totalRecordsEl.textContent = history.length;
+        totalQuantityEl.textContent = `${totalQty.toLocaleString('ru-RU')} шт.`;
+
+      } catch (err) {
+        console.error('Ошибка загрузки данных:', err);
+        document.getElementById('historyTbody').innerHTML = 
+          `<tr><td colspan="3" class="text-center text-error">Ошибка загрузки: ${err.message}</td></tr>`;
+      }
+    }
+
+    loadPartnerHistory();
+  </script>
+</body>
+</html>
